@@ -10,6 +10,7 @@
 class CustomCipher {
 
     private $key;
+    private $pos = 0;
 
     public function CustomCipher($key) {
         $this->key = array_map('ord', str_split(hex2bin($key),1));
@@ -18,23 +19,21 @@ class CustomCipher {
     public function cipher($plaintext, $decoding = false)
     {
         $out = [];
-        $pos = 0;
-        $key = $this->key; // copy
-        $size = count($key);
+        $size = count($this->key);
         
         foreach (unpack('C*', $plaintext) as $p) {
             // encode single byte
-            $b = $p ^ $key[ $key[$pos] % $size ];
+            $b = $p ^ $this->key[ $this->key[$this->pos] % $size ];
             // save
             $out[] = pack('C', $b);
             // modify key
             if ($decoding) {
-                $key[$p % $size] ^= $b;
+                $this->key[$p % $size] ^= $b;
             } else {
-                $key[$b % $size] ^= $p;
+                $this->key[$b % $size] ^= $p;
             }
             // rotate key usage
-            $pos = ++$pos % $size; 
+            $this->pos = ++$this->pos % $size; 
         }
         
         return join('',$out);
